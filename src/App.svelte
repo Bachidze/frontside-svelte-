@@ -1,6 +1,8 @@
 <script>
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
+  import Form from "./components/Form.svelte";
+  import Table from "./components/Table.svelte";
 
   const animals = writable([]);
   const apiUrl = "http://localhost:3000/api";
@@ -61,82 +63,21 @@
   });
 </script>
 
-<style>
-  .container {
-    padding: 20px;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  th, td {
-    border: 1px solid #ccc;
-    padding: 10px;
-    text-align: left;
-  }
-
-  th {
-    background-color: #f4f4f4;
-  }
-</style>
 
 <div class="container">
   <h1>Animal Management</h1>
-
-  <form on:submit|preventDefault={selectedAnimal ? editAnimal : addAnimal}>
-    <div>
-      <label for="name">Name:</label>
-      <input id="name" type="text" bind:value={form.name} required />
-    </div>
-    <div>
-      <label for="age">Age:</label>
-      <input id="age" type="number" bind:value={form.age} required />
-    </div>
-    <div>
-      <label for="specie">Specie:</label>
-      <input id="specie" type="text" bind:value={form.specie} required />
-    </div>
-    <button type="submit">{selectedAnimal ? "Update" : "Add"} Animal</button>
-    {#if selectedAnimal}
-      <button
-        type="button"
-        on:click={() => {
-          selectedAnimal = null;
-          form = { name: "", age: "", specie: "" };
-        }}
-      >
-        Cancel
-      </button>
-    {/if}
-  </form>
+  <Form 
+  addAnimal={addAnimal}
+  editAnimal={editAnimal}
+  bind:form
+  selectedAnimal={selectedAnimal}
+  />
 
   <h2>Animals List</h2>
 
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Age</th>
-        <th>Specie</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {#each $animals as animal (animal.id)}
-        <tr>
-          <td>{animal.id}</td>
-          <td>{animal.name}</td>
-          <td>{animal.age}</td>
-          <td>{animal.specie}</td>
-          <td>
-            <button on:click={() => populateForm(animal)}>Edit</button>
-            <button on:click={() => deleteAnimal(animal.id)}>Delete</button>
-          </td>
-        </tr>
-      {/each}
-    </tbody>
-  </table>
+  <Table 
+  animals={$animals}
+  onDelete={deleteAnimal}
+  onEdit={editAnimal}
+  />
 </div>
