@@ -7,77 +7,92 @@
   const animals = writable([]);
   const apiUrl = "https://backside-svelte-1.onrender.com/api";
 
-  let form = {
+  let form = writable({
     name: "",
     age: "",
     specie: ""
-  };
+  });
 
-  let selectedAnimal = null;
+  let selectedAnimal = writable(null);
 
   const fetchAnimals = async () => {
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-    animals.set(data.data);
+    try {
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+      animals.set(data.data);
+    } catch (error) {
+      console.error("Error fetching animals:", error);
+    }
   };
 
   const addAnimal = async () => {
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form)
-    });
+    try {
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify($form)
+      });
 
-    if (response.ok) {
-      await fetchAnimals();
-      form = { name: "", age: "", specie: "" };
+      if (response.ok) {
+        fetchAnimals();
+        form.set({ name: "", age: "", specie: "" });
+      }
+    } catch (error) {
+      console.error("Error adding animal:", error);
     }
   };
 
   const editAnimal = async () => {
-    const response = await fetch(`${apiUrl}/${selectedAnimal.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form)
-    });
+    if (!$selectedAnimal) return;
+    
+    try {
+      const response = await fetch(`${apiUrl}/${$selectedAnimal.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify($form)
+      });
 
-    if (response.ok) {
-      await fetchAnimals();
-      selectedAnimal = null;
-      form = { name: "", age: "", specie: "" };
+      if (response.ok) {
+        fetchAnimals();
+        selectedAnimal.set(null);
+        form.set({ name: "", age: "", specie: "" });
+      }
+    } catch (error) {
+      console.error("Error editing animal:", error);
     }
   };
 
   const deleteAnimal = async (id) => {
-    const response = await fetch(`${apiUrl}/${id}`, { method: "DELETE" });
-    if (response.ok) await fetchAnimals();
+    try {
+      const response = await fetch(`${apiUrl}/${id}`, { method: "DELETE" });
+      if (response.ok) fetchAnimals();
+    } catch (error) {
+      console.error("Error deleting animal:", error);
+    }
   };
 
   const populateForm = (animal) => {
-    selectedAnimal = animal;
-    form = { ...animal };
+    selectedAnimal.set(animal);
+    form.set({ ...animal });
   };
 
-  onMount(() => {
-    fetchAnimals();
-  });
+  onMount(fetchAnimals);
 </script>
-
 
 <div class="container">
   <h1>Animal Management</h1>
   <Form 
-  addAnimal={addAnimal}
-  editAnimal={editAnimal}
-  bind:form
-  selectedAnimal={selectedAnimal}
+    {addAnimal}
+    {editAnimal}
+    bind:form={$form}
+    bind:selectedAnimal={$selectedAnimal}
   />
 
   <h2>Animals List</h2>
 
   <Table 
-  animals={$animals}
-  onDelete={deleteAnimal}
-  onEdit={editAnimal}
+    animals={$animals}
+    onDelete={deleteAnimal}
+    onEdit={populateForm}
   />
 </div>
