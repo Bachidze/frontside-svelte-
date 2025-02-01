@@ -5,7 +5,7 @@
   import Table from "./components/Table.svelte";
 
   const animals = writable([]);
-  const apiUrl = "https://backside-svelte-1.onrender.com";
+  const apiUrl = "https://backside-svelte-1.onrender.com/api";
 
   let form = {
     name: "",
