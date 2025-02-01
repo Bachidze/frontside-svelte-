@@ -80,6 +80,7 @@
 </script>
 
 <div class="container">
+  <h2>Please wait 50 seconds before making the next request.</h2>
   <h1>Animal Management</h1>
   <Form 
     {addAnimal}
